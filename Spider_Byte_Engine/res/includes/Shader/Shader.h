@@ -1,18 +1,26 @@
 #if !defined(SHADER_H)
 #define SHADER_H
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <Textures/stb_image.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <glad/glad.h>
+
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 unsigned int ReadFile(const char*, char**);
 unsigned int CharCountOfFile(const char*);
 void DebugReadBuffer(char**);
 void UseShader(unsigned int);
-void SetBool(unsigned int, const char*, bool);
-void SetInt(unsigned int ID, const char*, int);
-void SetFloat(unsigned int ID, const char*, float);
-void SetFloat3(unsigned int ID, const char* Name, float A, float B, float C);
+void ShaderSetBool(unsigned int, const char*, bool);
+void ShaderSetInt(unsigned int, const char*, int);
+void ShaderSetFloat(unsigned int, const char*, float);
+void ShaderSetFloat3(unsigned int, const char*, float, float, float);
+void ShaderSetMat4(unsigned int, const char*, glm::mat4);
+int ShaderCreateTexture(const char*, unsigned int*, unsigned char);
 
 unsigned int CreateShader(const char* VertPath, const char* FragPath, unsigned int* ID)
 {
@@ -76,27 +84,31 @@ void UseShader(unsigned int ID)
   glUseProgram(ID);
 }
 
-void SetBool(unsigned int ID, const char* Name, bool A)
+void ShaderSetBool(unsigned int ID, const char* Name, bool A)
 {
   glUniform1i(glGetUniformLocation(ID, Name), (int)A);
 }
 
-void SetInt(unsigned int ID, const char* Name, int A)
+void ShaderSetInt(unsigned int ID, const char* Name, int A)
 {
   glUniform1i(glGetUniformLocation(ID, Name), A);
 }
 
-void SetFloat(unsigned int ID, const char* Name, float A)
+void ShaderSetFloat(unsigned int ID, const char* Name, float A)
 {
   glUniform1f(glGetUniformLocation(ID, Name), A);  
 }
 
-void SetFloat3(unsigned int ID, const char* Name, float A, float B, float C)
+void ShaderSetFloat3(unsigned int ID, const char* Name, float A, float B, float C)
 {
   glUniform3f(glGetUniformLocation(ID, Name), A, B, C);
 }
 
- 
+void ShaderSetMat4(unsigned int ID, const char* Name, glm::mat4 A)
+{
+  glUniformMatrix4fv(glGetUniformLocation(ID, Name), 1, GL_FALSE, glm::value_ptr(A));
+}
+
 unsigned int ReadFile(const char* FilePath, char** Buffer)
 {
   FILE* ptr = fopen(FilePath, "r");
@@ -158,6 +170,37 @@ void DebugReadBuffer(char** Buffer)
 	}
       Ptr++;
     }
+}
+
+int ShaderCreateTexture(const char* FilePath, unsigned int* ID, unsigned char IsAlpha)
+{
+  stbi_set_flip_vertically_on_load(true);
+
+  glGenTextures(1, ID);
+  glBindTexture(GL_TEXTURE_2D, *ID);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  int width, height, nrChannels;
+  unsigned char* data = stbi_load(FilePath, &width, &height, &nrChannels, 0);
+  if(!data)
+    {
+      printf("SPI_ERR: Could not load texture or bad path\n\%s\n", FilePath);
+      return -1;
+    }
+  if(IsAlpha)
+    {
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+      glGenerateMipmap(GL_TEXTURE_2D);
+    }
+  else
+    {
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+      glGenerateMipmap(GL_TEXTURE_2D);
+    }
+   stbi_image_free(data);
+  return 1;
 }
 
 #endif
