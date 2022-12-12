@@ -13,6 +13,5 @@ void main()
 {
   VertexColor = aPos;
   TexCoord = aTex;
-  gl_Position = Persp * Model * vec4(aPos, 1.0);
-  //gl_Position = Persp * View * Model * vec4(aPos, 1.0);
+  gl_Position = Persp * View * Model * vec4(aPos, 1.0);
 }
