@@ -25,7 +25,8 @@ IF NOT EXIST ..\..\build (mkdir ..\..\build)
 pushd ..\..\build
 REM NOTE -> CHANGE PATH FOR YOUR COMPILER AND COMPILER SETTINGS
 REM -l:libmcfgthread.a since I am using MINGW to compile <- replaces threading library.
-C:\SpiderEnv\mingw64\bin\gcc.exe -Wall -g ..\Engine\code\main.cpp -L..\Engine\res\libs -lglfw3 -lopengl32 -lgdi32 -static -l:libmcfgthread.a
+C:\SpiderEnv\mingw64\bin\gcc.exe -Wall -g ..\Engine\code\main.cpp -L..\Engine\res\libs -lglfw3 -lopengl32 -lgdi32 
+REM -static -l:libmcfgthread.a
 popd
 
 

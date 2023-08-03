@@ -7,6 +7,7 @@
 #include "../res/includes/glm/glm/glm.hpp"
 #include "../res/includes/glm/glm/gtc/matrix_transform.hpp"
 #include "../res/includes/glm/glm/gtc/type_ptr.hpp"
+#include "../res/includes/Camera/Camera.h"
 #include <cstdio>
 #include <math.h>
 
@@ -16,14 +17,8 @@
 #define TEXTURE_FILE "../Engine/res/includes/Textures/Wall.jpg"
 #define TEXTURE_FILE2 "../Engine/res/includes/Textures/awesomeface.png"
 
-glm::vec3 CameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-glm::vec3 CameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 WorldUp = glm::vec3(0.0f, 1.0f, 0.0f);
-r32 DeltaTime = 0.0f;
-r32 LastFrame = 0.0f;
-
 void
-framebuffer_size_callback(GLFWwindow* window, int width, int height)
+framebuffer_size_callback(GLFWwindow* Window, int width, int height)
 {
 	glViewport(0, 0, width, height);
 }
@@ -61,36 +56,6 @@ InitializeOpenGL(GLFWwindow** GLWindow, Window* Window)
 	return 0;
 }
 
-void
-ProcessInput(GLFWwindow** Window)
-{
-	const r32 CameraSpeed = 2.5f * DeltaTime;
-	if(glfwGetKey((*Window), GLFW_KEY_ESCAPE) == GLFW_PRESS)
-	{
-		glfwSetWindowShouldClose((*Window), true);
-	}
-
-	if(glfwGetKey((*Window), GLFW_KEY_W) == GLFW_PRESS)
-	{
-		CameraPos += CameraSpeed * CameraFront;
-	}
-
-	if(glfwGetKey((*Window), GLFW_KEY_S) == GLFW_PRESS)
-	{
-		CameraPos -= CameraSpeed * CameraFront;
-	}
-
-	if(glfwGetKey((*Window), GLFW_KEY_A) == GLFW_PRESS)
-	{
-		CameraPos -= glm::normalize(glm::cross(CameraFront, WorldUp)) * CameraSpeed;
-	}
-
-	if(glfwGetKey((*Window), GLFW_KEY_D) == GLFW_PRESS)
-	{
-		CameraPos += glm::normalize(glm::cross(CameraFront, WorldUp)) * CameraSpeed;
-	}
-}
-
 
 int
 main()
@@ -104,10 +69,11 @@ main()
 	if(InitializeOpenGL(&WindowContext, &MainWindow))
 	{
 		glfwSetFramebufferSizeCallback(WindowContext, framebuffer_size_callback);
-
+		glfwSetInputMode(WindowContext, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		glfwSetCursorPosCallback(WindowContext, mouse_callback);
+		glfwSetScrollCallback(WindowContext, scroll_callback);
 	//	r32 Vertices[] =
 	//	{
-			// positions // colors
 	//		0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,// bottom right
 	//		-0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,// bottom left
 	//		0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.5f, 1.0f,  // top
@@ -198,7 +164,6 @@ main()
 
 		glm::mat4 View = glm::mat4(1.0f);
 		glm::mat4 Projection = glm::mat4(1.0f);
-		Projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
 		while(!glfwWindowShouldClose(WindowContext))
 		{
@@ -213,6 +178,7 @@ main()
 			r32 TimeValue = glfwGetTime();
 			r32 GreenValue = (sin(TimeValue) / 2.0f) + 0.5f;
 
+			Projection = glm::perspective(glm::radians(FOV), 800.0f / 600.0f, 0.1f, 100.0f);
 			View = glm::lookAt(CameraPos, CameraPos + CameraFront, WorldUp);
 
 			glUseProgram(ShaderID);
