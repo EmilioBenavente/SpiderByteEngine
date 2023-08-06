@@ -8,6 +8,8 @@
 #include "../glm/glm/gtc/matrix_transform.hpp"
 #include "../glm/glm/gtc/type_ptr.hpp"
 
+#define MAX_FILE_SIZE 1024 * 4
+
 enum ShaderStatus
 {
 	Vertex,
@@ -70,7 +72,7 @@ void
 GenerateShader(u32* ID, const c8* VertFile, const c8* FragFile)
 {
 
-	c8 VertBuffer[1024] = {};
+	c8 VertBuffer[MAX_FILE_SIZE] = {};
 	u32 FileSize = 0;
 	ReadEntireFile((u8*)VertBuffer, &FileSize, VertFile);
 
@@ -82,7 +84,7 @@ GenerateShader(u32* ID, const c8* VertFile, const c8* FragFile)
 		glCompileShader(VertexShader);
 		if(CheckShaderStatus(ShaderStatus::Vertex, VertexShader))
 		{
-			c8 FragBuffer[1024] = {};
+			c8 FragBuffer[MAX_FILE_SIZE] = {};
 			FileSize = 0;
 			ReadEntireFile((u8*)FragBuffer, &FileSize, FragFile);
 
@@ -114,6 +116,18 @@ GenerateShader(u32* ID, const c8* VertFile, const c8* FragFile)
 	}
 }
 
+
+void
+ShaderSetVec3(u32* ID, const c8* UniformName, glm::vec3 A)
+{
+	glUniform3f(glGetUniformLocation(*ID, UniformName), A.x, A.y, A.z);
+}
+
+void
+ShaderSetVec4(u32* ID, const c8* UniformName, glm::vec4 A)
+{
+	glUniform4f(glGetUniformLocation(*ID, UniformName), A.x, A.y, A.z, A.w);
+}
 
 void
 ShaderSetMat2(u32* ID, const c8* UniformName, glm::mat2 A)

@@ -12,10 +12,16 @@
 #include <math.h>
 
 #define VERTEX_FILE "../Engine/res/includes/Shaders/DefaultShader.vs"
-#define FRAGMENT_FILE "../Engine/res/includes/Shaders/DefaultShader.fs"
+#define FRAGMENT_FILE "../Engine/res/includes/Shaders/DefaultLightMap.fs"
 
-#define TEXTURE_FILE "../Engine/res/includes/Textures/Wall.jpg"
-#define TEXTURE_FILE2 "../Engine/res/includes/Textures/awesomeface.png"
+#define LIGHT_VERTEX_FILE "../Engine/res/includes/Shaders/DefaultLightShader.vs"
+#define LIGHT_FRAGMENT_FILE "../Engine/res/includes/Shaders/DefaultLightShader.fs"
+
+#define DIFFUSE_MAP "../Engine/res/includes/Textures/container2.png"
+#define SPECULAR_MAP "../Engine/res/includes/Textures/container2_specular_colored.png"
+
+glm::vec3 LightPos = glm::vec3(0.0f, 100.0f, 0.0f);
+glm::vec3 LightColor = glm::vec3(1.0f, 1.0f, 1.0f);
 
 void
 framebuffer_size_callback(GLFWwindow* Window, int width, int height)
@@ -72,50 +78,45 @@ main()
 		glfwSetInputMode(WindowContext, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		glfwSetCursorPosCallback(WindowContext, mouse_callback);
 		glfwSetScrollCallback(WindowContext, scroll_callback);
-	//	r32 Vertices[] =
-	//	{
-	//		0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,// bottom right
-	//		-0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,// bottom left
-	//		0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.5f, 1.0f,  // top
-	//	};
 
 		r32 Vertices[] = {
-			-0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-			0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
-			0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-			0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-			-0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
-			-0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-			-0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-			0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-			0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
-			0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
-			-0.5f, 0.5f, 0.5f, 0.0f, 1.0f,
-			-0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-			-0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-			-0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-			-0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-			-0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-			-0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-			-0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-			0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-			0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-			0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-			0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-			0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-			0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-			-0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-			0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
-			0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-			0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-			-0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-			-0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-			-0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
-			0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-			0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-			0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-			-0.5f, 0.5f, 0.5f, 0.0f, 0.0f,
-			-0.5f, 0.5f, -0.5f, 0.0f, 1.0f
+			// positions // normals // texture coords
+			-0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
+			0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f,
+			0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,
+			0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,
+			-0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f,
+			-0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
+			-0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+			0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
+			0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+			0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+			-0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+			-0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+			-0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+			-0.5f, 0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+			-0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+			-0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+			-0.5f, -0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+			-0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+			0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+			0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+			0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+			0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+			0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+			0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+			-0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f,
+			0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f,
+			0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+			0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+			-0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+			-0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f,
+			-0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+			0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+			0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+			0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+			-0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+			-0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f
 		};
 
 		glm::vec3 CubePositions[] = {
@@ -140,30 +141,62 @@ main()
 		glBindVertexArray(VAO);
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), (void*) 0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (void*) 0);
 		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), (void*) (1 * sizeof(GL_FLOAT)));
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (void*) (3 * sizeof(GL_FLOAT)));
 		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), (void*) (3 * sizeof(GL_FLOAT)));
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (void*) (3 * sizeof(GL_FLOAT)));
 		glEnableVertexAttribArray(2);
+		glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (void*) (6 * sizeof(GL_FLOAT)));
+		glEnableVertexAttribArray(3);
+
+		u32 LightVBO = 0;
+		u32 LightVAO = 0;
+		glGenBuffers(1, &LightVBO);
+		glGenVertexArrays(1, &LightVAO);
+
+		glBindVertexArray(LightVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, LightVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (void*) 0);
+		glEnableVertexAttribArray(0);
 
 		u32 ShaderID = 0;
 		GenerateShader(&ShaderID, VERTEX_FILE, FRAGMENT_FILE);
 
-		u32 TextureID = 0;
-		glActiveTexture(GL_TEXTURE0);
-		GenerateTexture(&TextureID, TEXTURE_FILE, TextureColorFormat::RGB);
+		u32 LightShaderID = 0;
+		GenerateShader(&LightShaderID, LIGHT_VERTEX_FILE, LIGHT_FRAGMENT_FILE);
 
-		u32 TextureID2 = 0;
+
+		u32 DiffuseMap = 0;
+		glActiveTexture(GL_TEXTURE0);
+		GenerateTexture(&DiffuseMap, DIFFUSE_MAP, TextureColorFormat::RGBA);
+
+		u32 SpecularMap = 0;
 		glActiveTexture(GL_TEXTURE1);
-		ShaderSetInt(&ShaderID, "UniformTexCoord2", 1);
-		GenerateTexture(&TextureID2, TEXTURE_FILE2, TextureColorFormat::RGBA);
+		GenerateTexture(&SpecularMap, SPECULAR_MAP, TextureColorFormat::RGBA);
 
 		glEnable(GL_DEPTH_TEST);
 
-
 		glm::mat4 View = glm::mat4(1.0f);
 		glm::mat4 Projection = glm::mat4(1.0f);
+
+		glm::mat4 CubeMat = glm::mat4(1.0f);
+		CubeMat = glm::translate(CubeMat, LightPos);
+		CubeMat = glm::scale(CubeMat, glm::vec3(40.0f));
+
+		glUseProgram(ShaderID);
+		ShaderSetInt(&ShaderID, "Material.Ambient", 0);
+		ShaderSetInt(&ShaderID, "Material.Diffuse", 0);
+		ShaderSetInt(&ShaderID, "Material.Specular", 1);
+		ShaderSetVec3(&ShaderID, "Light.Ambient", glm::vec3(0.2f));
+		ShaderSetVec3(&ShaderID, "Light.Diffuse", glm::vec3(0.5f));
+		ShaderSetVec3(&ShaderID, "Light.Specular", glm::vec3(1.0f));
+		ShaderSetVec3(&ShaderID, "Light.Direction", glm::vec3(-0.2f, -1.0f, -0.3f));
+		ShaderSetFloat(&ShaderID, "Light.Constant", 1.0f);
+		ShaderSetFloat(&ShaderID, "Light.Linear", 0.09f);
+		ShaderSetFloat(&ShaderID, "Material.Shininess", 0.032f);
+
 
 		while(!glfwWindowShouldClose(WindowContext))
 		{
@@ -178,6 +211,16 @@ main()
 			r32 TimeValue = glfwGetTime();
 			r32 GreenValue = (sin(TimeValue) / 2.0f) + 0.5f;
 
+
+			glUseProgram(LightShaderID);
+			glBindVertexArray(LightVAO);
+			ShaderSetMat4(&LightShaderID, "Model", CubeMat);
+			ShaderSetMat4(&LightShaderID, "View", View);
+			ShaderSetMat4(&LightShaderID, "Projection", Projection);
+			ShaderSetVec3(&LightShaderID, "LightColor", LightColor);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+
+
 			Projection = glm::perspective(glm::radians(FOV), 800.0f / 600.0f, 0.1f, 100.0f);
 			View = glm::lookAt(CameraPos, CameraPos + CameraFront, WorldUp);
 
@@ -185,11 +228,18 @@ main()
 			ShaderSetFloat4(&ShaderID, "UniformColor", 0.4f, GreenValue, 0.7f, 1.0f);
 			ShaderSetMat4(&ShaderID, "View", View);
 			ShaderSetMat4(&ShaderID, "Projection", Projection);
+			ShaderSetVec3(&ShaderID, "LightColor", LightColor);
+			ShaderSetVec3(&ShaderID, "ViewPos", CameraPos);
+
+			ShaderSetVec3(&ShaderID, "Light.Position", CameraPos);
+			ShaderSetVec3(&ShaderID, "Light.Direction", CameraFront);
+			ShaderSetFloat(&ShaderID, "Light.InnerCutoff", glm::cos(glm::radians(12.5f)));
+			ShaderSetFloat(&ShaderID, "Light.OuterCutoff", glm::cos(glm::radians(17.5f)));
 
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, TextureID);
+			glBindTexture(GL_TEXTURE_2D, DiffuseMap);
 			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, TextureID2);
+			glBindTexture(GL_TEXTURE_2D, SpecularMap);
 
 			glBindVertexArray(VAO);
 			for(u8 Index = 0; Index < 10; Index++)
